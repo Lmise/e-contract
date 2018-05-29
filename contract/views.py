@@ -2,21 +2,13 @@ from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
 from django.core.mail import send_mail
-from django.db.models import Count
-
-from taggit.models import Tag
 
 from .models import Contract
 from .forms import EmailPostForm
 
 
 def contract_list(request, tag_slug=None):
-    object_list = Contract.published.all()
-    tag = None
-
-    if tag_slug:
-        tag = get_object_or_404(Tag, slug=tag_slug)
-        object_list = object_list.filter(tags_in=[tag])
+    object_list = Contract.approved.all()
 
     paginator = Paginator(object_list, 5)  # 5 contracts in each page
     page = request.GET.get('page')
@@ -29,34 +21,28 @@ def contract_list(request, tag_slug=None):
         # If page is out of range deliver the last page of the results
         contracts = paginator.page(paginator.num_pages)
     return render(request, "contract/contracts/list.html", {'page': page,
-                                                            'contracts': contracts,
-                                                            'tag': tag})
+                                                            'contracts': contracts})
 
 class ContactListView(ListView):
-    queryset = Contract.published.all()
+    queryset = Contract.approved.all()
     context_object_name = 'contracts'
     paginate_by = 5
     template_name = 'contract/contracts/list.html'
 
 
-def post_detail(request, year, month, day, post):
+def contract_detail(request, year, month, day, post):
     contract = get_object_or_404(Contract, slug=post,
-                                   status='published',
+                                   status='approved',
                                    publish__year=year,
                                    publish__month=month,
                                    publish__day=day)
     # list of similar contracts
-    contract_tags_ids = contract.tags.values_list('id', flat=True)
-    similar_contracts = Contract.published.filter(tags__in=contract_tags_ids).exclude(id=post.id)
-    similar_contracts = similar_contracts.annotate(same_tags=Count('tags')).order_by('-same_tags',
-                                                                             '-publish')[:4]
-    return render(request, 'blog/contract/detail.html', {'contract': contract,
-                                                     'similar_contracts': similar_contracts})
+    return render(request, 'contract/contracts/detail.html', {'contract': contract})
 
 
 def contract_share(request, contract_id):
     # Retrieve post by id
-    contract = get_object_or_404(Contract, id=contract_id, status='published')
+    contract = get_object_or_404(Contract, id=contract_id, status='approved')
     sent = False
 
     if request.method == 'POST':
@@ -69,11 +55,11 @@ def contract_share(request, contract_id):
             subject = 'Podii Consultants Would like tou to sign "{}" in order to proceed with the job'\
                 .format(contract.title)
             message = 'View "{}" at {}\n\n{}\'s comments: {}'.format(contract.title, contract_url,)
-            send_mail(subject, message, 'admin@myblog.com', [cd['to']])
+            send_mail(subject, message, 'admin@site.com', [cd['to']])
             sent = True
-    else:
-        form = EmailPostForm()
-    return render(request, 'blog/post/share.html', {'contract': contract,
+        else:
+            form = EmailPostForm()
+    return render(request, 'contract/contracts/share.html', {'contract': contract,
                                                     'form': form,
                                                     'sent': sent})
 
