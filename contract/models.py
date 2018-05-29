@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 
 class ContractsManager(models.Manager):
     def get_queryset(self):
-        return super(ContractsManager, self).get_queryset().filter(status='approved')
+        return super(ContractsManager, self).get_queryset().filter(project_status='approved')
 
 class Contract(models.Model):
     STATUS_CHOICES = (
