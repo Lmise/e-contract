@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 
 class ContractsManager(models.Manager):
     def get_queryset(self):
-        return super(ContractsManager, self).get_queryset().filter(status='approved')
+        return super(ContractsManager, self).get_queryset().filter(project_status='approved')
 
 class Contract(models.Model):
     STATUS_CHOICES = (
@@ -16,7 +16,7 @@ class Contract(models.Model):
     client_name = models.CharField(max_length=80)
     project_name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique_for_date='project_publish_date')
-    project_holder = models.ForeignKey(User, related_name='project_publish_date')
+    project_lead = models.ForeignKey(User, related_name='project_publish_date')
     project_status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pending')
     project_description = models.TextField()
     project_publish_date = models.DateTimeField(default=timezone.now)
