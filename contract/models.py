@@ -31,7 +31,7 @@ class Contract(models.Model):
         return self.project_name
 
     def get_absolute_url(self):
-        return reverse('contract:project_detail', args=[self.project_publish_date.year,
+        return reverse('contract:contract_detail', args=[self.project_publish_date.year,
                                                         self.project_publish_date.strftime('%m'),
                                                         self.project_publish_date.strftime('%d'),
                                                         self.slug])
