@@ -4,10 +4,10 @@ from django.views.generic import ListView
 from django.core.mail import send_mail
 
 from .models import Contract
-from .forms import EmailPostForm
+from .forms import EmailContractForm
 
 
-def contract_list(request, tag_slug=None):
+def contract_list(request):
     object_list = Contract.approved.all()
 
     paginator = Paginator(object_list, 5)  # 5 contracts in each page
@@ -20,24 +20,23 @@ def contract_list(request, tag_slug=None):
     except EmptyPage:
         # If page is out of range deliver the last page of the results
         contracts = paginator.page(paginator.num_pages)
-    return render(request, "contract/contracts/list.html", {'page': page,
-                                                            'contracts': contracts})
+    return render(request, "contracts/list.html", {'page': page, 'contracts': contracts})
 
 class ContactListView(ListView):
     queryset = Contract.approved.all()
     context_object_name = 'contracts'
     paginate_by = 5
-    template_name = 'contract/contracts/list.html'
+    template_name = 'contracts/list.html'
 
 
-def contract_detail(request, year, month, day, post):
-    contract = get_object_or_404(Contract, slug=post,
-                                   status='approved',
-                                   publish__year=year,
-                                   publish__month=month,
-                                   publish__day=day)
+def contract_detail(request, year, month, day, contract):
+    contract = get_object_or_404(Contract, slug=contract,
+                                 project_status='approved',
+                                 project_publish_date__year=year,
+                                 project_publish_date__month=month,
+                                 project_publish_date__day=day)
     # list of similar contracts
-    return render(request, 'contract/contracts/detail.html', {'contract': contract})
+    return render(request, 'contracts/detail.html', {'contract': contract})
 
 
 def contract_share(request, contract_id):
@@ -47,7 +46,7 @@ def contract_share(request, contract_id):
 
     if request.method == 'POST':
         # Form was submitted
-        form = EmailPostForm(request.POST)
+        form = EmailContractForm(request.POST)
         if form.is_valid():
             # Form fields passed validation
             cd = form.cleaned_data
@@ -58,8 +57,8 @@ def contract_share(request, contract_id):
             send_mail(subject, message, 'admin@site.com', [cd['to']])
             sent = True
         else:
-            form = EmailPostForm()
-    return render(request, 'contract/contracts/share.html', {'contract': contract,
+            form = EmailContractForm()
+    return render(request, 'contracts/share.html', {'contract': contract,
                                                     'form': form,
                                                     'sent': sent})
 
