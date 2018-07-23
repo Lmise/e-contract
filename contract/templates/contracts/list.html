@@ -1,0 +1,14 @@
+<!--list.hml-->
+<h1>The Contracts List page</h1>
+
+{% for contract in contracts %}
+
+  <h2><a href="{{ contract.get_absolute_url }}"> {{ contract.project_name }} </a></h2>
+
+    <p class="date"> Published {{ contract.project_publish_date }} for {{ contract.client_name }}</p>
+    {{ contract.project_description|truncatewords_html:50 }}
+
+{% endfor %}
+
+
+

@@ -1,0 +1,14 @@
+<!--detail.hml-->
+<h1>
+  Contract detail Page
+</h1>
+
+<p>
+ {{ contracts.approved.all }}
+</p>
+
+{% for contract in contracts %}
+
+  <p><a href="{{ contract.get_absolute_url }}">{{ contract.project_title }}</a></p>
+
+{% endfor %}
